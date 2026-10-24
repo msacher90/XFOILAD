@@ -1,0 +1,18 @@
+{
+  "airfoil": {"naca": "2412"},
+  "parametrization": {"type": "bspline", "n_ctrl": 12},
+  "objective": "cd",
+  "points": [
+    {"cl": 0.3, "re": 1e6, "name": "cruise", "flap": 0.0, "flap_var": true},
+    {"cl": 1.0, "re": 1e6, "name": "climb", "flap": 0.0, "flap_var": true}
+  ],
+  "flap": {"hinge": [0.75, 0.5], "bounds": [-5.0, 15.0], "blend": 0.03, "scale": 1.0},
+  "constraints": [
+    {"kind": "max_thickness", "lower": 0.12},
+    {"kind": "cm", "point": 0, "lower": -0.08},
+    {"kind": "cpmin", "point": 1, "lower": -1.6},
+    {"kind": "cmh", "point": 1, "lower": -0.001, "upper": 0.001}
+  ],
+  "optimizer": {"maxiter": 40, "dv_bounds": 0.04, "dv_scale": 0.01},
+  "output": "results_flap"
+}

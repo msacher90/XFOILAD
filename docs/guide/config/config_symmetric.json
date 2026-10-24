@@ -1,0 +1,19 @@
+{
+  "airfoil": {"naca": "0012"},
+  "parametrization": {"type": "bspline", "n_ctrl": 10, "symmetric": true},
+  "objective": "cd",
+  "points": [
+    {"cl": 0.2, "re": 1e6, "tu": 0.1, "name": "course"},
+    {"cl": 0.4, "re": 1e6, "tu": 0.1, "name": "turn", "weight": 0.5},
+    {"cl": 0.9, "re": 6e5, "tu": 0.3, "name": "manoeuvre", "in_objective": false}
+  ],
+  "constraints": [
+    {"kind": "cfmin", "point": "manoeuvre", "lower": 0.0},
+    {"kind": "alpha", "point": "manoeuvre", "upper": 10.0},
+    {"kind": "max_thickness", "lower": 0.12},
+    {"kind": "le_radius", "lower": 0.008}
+  ],
+  "optimizer": {"maxiter": 30, "dv_bounds": 0.04, "cfmin_xrange": [0.1, 1.0]},
+  "sensitivities": {"functions": ["cl", "cd", "cfmin", "cp"], "designs": ["optimized"], "points": ["course"]},
+  "output": "results_symmetric"
+}

@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use XFOILAD in your work, please cite it as below."
+title: "XFOILAD: adjoint-based section optimization with XFOIL"
+type: software
+authors:
+  - family-names: Sacher
+    given-names: Matthieu
+    email: matthieu.sacher@ensam.eu
+    affiliation: "Arts et Métiers Institute of Technology, École Navale, IRENav, France"
+date-released: 2026-10-24
+license: GPL-3.0-or-later
+repository-code: "https://github.com/msacher90/XFOILAD"
+abstract: >-
+  Gradient-based optimization of 2D sections with the reverse-mode adjoint of
+  the complete XFOIL viscous-inviscid solver, boundary layer and eN transition
+  included, differentiated with Tapenade.
+keywords:
+  - XFOIL
+  - adjoint
+  - automatic differentiation
+  - shape optimization
+  - hydrofoil
+  - airfoil
