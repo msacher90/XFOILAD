@@ -268,7 +268,6 @@ CONTAINS
     IF (branch .NE. 0) THEN
       IF (branch .EQ. 1) THEN
         sigma = smax/ds1
-        nex = nn - 1
       ELSE
         sigmab = 0.0_8
         GOTO 110

@@ -8404,10 +8404,11 @@ CONTAINS
 !N_XW PSWLIN QDCALC QWCALC SCALC SEGSPL XYWAKE TECALC SPLIND SEVAL DEVAL D2VAL SINVRT LEFIND VISCAL SPECAL SPECCL MRCL COMSET CLC
 !ALC CDCALC CPCALC QISET QVFUE GAMQV STFIND STMOVE UICALC XICALC AXSET ATANC SETEXP TRISOL GAUSS BLSOLV BAKSUB) r8 messagesInFile
 !):
-!   gradient     of useful results: dqdm dste s xte x y nx ny xp
-!                ante aste dzdm yp alfa yte apanel dqdg gam
-!   with respect to varying inputs: dqdm dste s x y nx ny xp ante
-!                aste chord dzdm yp alfa apanel dqdg gam
+!   gradient     of useful results: dqdm dste s xte x y snew nx
+!                ny xp ante aste chord dzdm yp alfa yte apanel
+!                dqdg gam
+!   with respect to varying inputs: dqdm dste s x y snew nx ny
+!                xp ante aste chord dzdm yp alfa apanel dqdg gam
 !*==XYWAKE.f90  processed by SPAG 7.21DC at 11:25 on 11 Jan 2019
   SUBROUTINE XYWAKE_FWD()
     USE M_XUTILS_DIFF, ONLY : setexp, setexp_fwd, setexp_bwd
@@ -8466,7 +8467,6 @@ CONTAINS
     arg1 = waklen*chord
     CALL SETEXP_FWD(snw, ds1, arg1, nw)
     DO i=1,nw
-      CALL PUSHREAL8(snew(n+i))
       snew(n+i) = snw(i)
     END DO
 !
@@ -8516,6 +8516,7 @@ CONTAINS
 !
 !---- set rest of wake points
     DO i=n+2,n+nw
+      CALL PUSHREAL8(ds)
       ds = snew(i) - snew(i-1)
 !
 !------ set new point DS downstream of last point
@@ -8547,6 +8548,10 @@ CONTAINS
         CALL PUSHCONTROL1B(0)
       END IF
     END DO
+    CALL PUSHREAL8(psi_y)
+    CALL PUSHREAL8(psi_x)
+    CALL PUSHREAL8(smod)
+    CALL PUSHREAL8(ds)
 !
 !
 !---- set wake presence flag and corresponding alpha
@@ -8554,19 +8559,17 @@ CONTAINS
 !
 !---- old source influence matrix is invalid for the new wake geometry
     lwdij = .false.
-    CALL PUSHREAL8(psi_y)
-    CALL PUSHREAL8(psi_x)
-    CALL PUSHREAL8(smod)
   END SUBROUTINE XYWAKE_FWD
 
 !  Differentiation of xywake in reverse (adjoint) mode, backward sweep (with options split(ABCOPY APCALC GGCALC NCALC PSILIN PSIL
 !IN_XW PSWLIN QDCALC QWCALC SCALC SEGSPL XYWAKE TECALC SPLIND SEVAL DEVAL D2VAL SINVRT LEFIND VISCAL SPECAL SPECCL MRCL COMSET CL
 !CALC CDCALC CPCALC QISET QVFUE GAMQV STFIND STMOVE UICALC XICALC AXSET ATANC SETEXP TRISOL GAUSS BLSOLV BAKSUB) r8 messagesInFil
 !e):
-!   gradient     of useful results: dqdm dste s xte x y nx ny xp
-!                ante aste dzdm yp alfa yte apanel dqdg gam
-!   with respect to varying inputs: dqdm dste s x y nx ny xp ante
-!                aste chord dzdm yp alfa apanel dqdg gam
+!   gradient     of useful results: dqdm dste s xte x y snew nx
+!                ny xp ante aste chord dzdm yp alfa yte apanel
+!                dqdg gam
+!   with respect to varying inputs: dqdm dste s x y snew nx ny
+!                xp ante aste chord dzdm yp alfa apanel dqdg gam
 !*==XYWAKE.f90  processed by SPAG 7.21DC at 11:25 on 11 Jan 2019
   SUBROUTINE XYWAKE_BWD()
     USE M_XUTILS_DIFF, ONLY : setexp, setexp_fwd, setexp_bwd
@@ -8590,10 +8593,10 @@ CONTAINS
     REAL :: temp0
     REAL :: tempb0
     INTEGER :: branch
+    CALL POPREAL8(ds)
     CALL POPREAL8(smod)
     CALL POPREAL8(psi_x)
     CALL POPREAL8(psi_y)
-    snewb = 0.0_8
     DO i=n+nw,n+2,-1
       CALL POPCONTROL1B(branch)
       IF (branch .NE. 0) THEN
@@ -8633,7 +8636,6 @@ CONTAINS
         xb0(i) = xb0(i) + xadtmpb3
         yb0(i) = yb0(i) + xadtmpb4
       END IF
-      ds = snew(i) - snew(i-1)
       CALL POPREAL8(s(i))
       sb0(i-1) = sb0(i-1) + sb0(i)
       dsb = sb0(i) + nx(i)*yb0(i) - ny(i)*xb0(i)
@@ -8646,6 +8648,7 @@ CONTAINS
       xb0(i-1) = xb0(i-1) + xb0(i)
       nyb(i) = nyb(i) - ds*xb0(i)
       xb0(i) = 0.0_8
+      CALL POPREAL8(ds)
       snewb(i) = snewb(i) + dsb
       snewb(i-1) = snewb(i-1) - dsb
     END DO
@@ -8723,14 +8726,13 @@ CONTAINS
     xb0(n) = xb0(n) + 0.5*xteb
     snwb = 0.0_8
     DO i=nw,1,-1
-      CALL POPREAL8(snew(n+i))
       snwb(i) = snwb(i) + snewb(n+i)
       snewb(n+i) = 0.0_8
     END DO
     ds1 = 0.5*(s(2)-s(1)+s(n)-s(n-1))
     arg1 = waklen*chord
     CALL SETEXP_BWD(snw, snwb, ds1, ds1b, arg1, arg1b, nw)
-    chordb0 = waklen*arg1b
+    chordb0 = chordb0 + waklen*arg1b
     tempb = 0.5*ds1b
     sb0(2) = sb0(2) + tempb
     sb0(1) = sb0(1) - tempb

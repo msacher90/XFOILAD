@@ -107,6 +107,15 @@ module i_xfoil
     ! iterations performed by VISCAL (used by the warm-restart adjoint)
     real :: xad_eps1 = 1.0E-4
     integer :: xad_minit = 1
+    ! XFOILAD: .true. during the warm-restart replay of the adjoint and tangent
+    ! passes (set by the C API).  In CL mode, XAD_EVAL then builds the wake at
+    ! the inviscid alpha (as the primal analysis) and restarts the Newton
+    ! iterations from the converged alpha of the BL state instead of the
+    ! inviscid one, so that the replayed iterations start at the fixed point
+    ! (from the inviscid alpha, a transition sitting near a BL station could
+    ! take more than the replayed iterations to come back, and the adjoint
+    ! differentiated that transient: wrong gradients)
+    logical :: xad_replay = .false.
     ! XFOILAD: minimum distance of the stagnation point from the panel nodes,
     ! as a fraction of the panel length (STFIND)
     real :: stfrac = 0.01

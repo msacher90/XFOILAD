@@ -111,6 +111,7 @@ CONTAINS
     USE M_SPLINE, ONLY : scalc, segspl
     USE M_XGDES, ONLY : abcopy
     USE M_XOPER_AD, ONLY : specal, speccl, viscal
+    USE M_XPANEL, ONLY : xywake
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: n_in, imode, niter
     LOGICAL, INTENT(IN) :: warm
@@ -119,6 +120,7 @@ CONTAINS
     REAL, INTENT(OUT) :: cp_out(n_in), cf_out(n_in)
     LOGICAL, INTENT(OUT) :: conv
     INTEGER :: i, is, ibl
+    REAL :: alfrp
 !
 !---- Reynolds number and critical amplification factors (top, bottom):
 !     inputs of the head routine, so that the adjoint gives their gradients
@@ -175,11 +177,21 @@ CONTAINS
     ELSE
 !----- specified CL (alpha is the Newton unknown)
       clspec = op_in
+!------ converged alpha of the BL state (replay of the adjoint / tangent)
+      alfrp = alfa
 !------ inviscid alpha for CL: XFOIL builds the wake at this alpha and
 !       keeps it frozen during the viscous Newton iterations, so the
 !       warm restart must do the same to differentiate the same function
       CALL SPECCL()
       lalfa = .false.
+      IF (warm .AND. xad_replay .AND. lvisc) THEN
+!------ wake at the inviscid alpha (VISCAL keeps it), then Newton
+!       restarted from the converged alpha: the replay starts at the
+!       fixed point (see xad_replay in i_xfoil)
+        IF (.NOT.lwake) CALL XYWAKE()
+        alfa = alfrp
+        adeg = alfa/dtor
+      END IF
     END IF
 !
     IF (lvisc) THEN

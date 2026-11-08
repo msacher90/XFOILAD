@@ -120,6 +120,7 @@ CONTAINS
     USE M_XGDES_DIFF, ONLY : abcopy, abcopy_fwd, abcopy_bwd
     USE M_XOPER_AD_DIFF, ONLY : specal, specal_fwd, specal_bwd, speccl, speccl_fwd, speccl_bwd, viscal, &
 &      viscal_fwd, viscal_bwd
+    USE M_XPANEL_DIFF, ONLY : xywake, xywake_fwd, xywake_bwd
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: n_in, imode, niter
     LOGICAL, INTENT(IN) :: warm
@@ -131,6 +132,7 @@ CONTAINS
     REAL :: cp_outb(n_in), cf_outb(n_in)
     LOGICAL :: conv
     INTEGER :: i, is, ibl
+    REAL :: alfrp
     LOGICAL :: res
     INTEGER :: ad_to
     INTEGER :: branch
@@ -185,18 +187,35 @@ CONTAINS
       CALL PUSHBOOLEAN(lalfa)
       lalfa = .true.
       CALL SPECAL_FWD()
-      CALL PUSHCONTROL1B(0)
+      CALL PUSHCONTROL2B(0)
     ELSE
 !----- specified CL (alpha is the Newton unknown)
       CALL PUSHREAL8(clspec)
       clspec = op_in
+!------ converged alpha of the BL state (replay of the adjoint / tangent)
+      alfrp = alfa
 !------ inviscid alpha for CL: XFOIL builds the wake at this alpha and
 !       keeps it frozen during the viscous Newton iterations, so the
 !       warm restart must do the same to differentiate the same function
       CALL SPECCL_FWD()
       CALL PUSHBOOLEAN(lalfa)
       lalfa = .false.
-      CALL PUSHCONTROL1B(1)
+      IF (warm .AND. xad_replay .AND. lvisc) THEN
+!------ wake at the inviscid alpha (VISCAL keeps it), then Newton
+!       restarted from the converged alpha: the replay starts at the
+!       fixed point (see xad_replay in i_xfoil)
+        IF (.NOT.lwake) THEN
+          CALL XYWAKE_FWD()
+          CALL PUSHCONTROL1B(0)
+        ELSE
+          CALL PUSHCONTROL1B(1)
+        END IF
+        CALL PUSHREAL8(alfa)
+        alfa = alfrp
+        CALL PUSHCONTROL2B(1)
+      ELSE
+        CALL PUSHCONTROL2B(2)
+      END IF
     END IF
 !
     IF (lvisc) THEN
@@ -261,6 +280,7 @@ CONTAINS
       xb0 = 0.0_8
       yb0 = 0.0_8
       qinv_ab = 0.0_8
+      snewb = 0.0_8
       nxb = 0.0_8
       nyb = 0.0_8
       xpb = 0.0_8
@@ -286,6 +306,7 @@ CONTAINS
       xb0 = 0.0_8
       yb0 = 0.0_8
       qinv_ab = 0.0_8
+      snewb = 0.0_8
       nxb = 0.0_8
       yleb = 0.0_8
       nyb = 0.0_8
@@ -310,13 +331,25 @@ CONTAINS
       dqdgb = 0.0_8
       gamb = 0.0_8
     END IF
-    CALL POPCONTROL1B(branch)
+    CALL POPCONTROL2B(branch)
     IF (branch .EQ. 0) THEN
       CALL SPECAL_BWD()
       CALL POPBOOLEAN(lalfa)
       CALL POPREAL8(alfa)
       op_inb = dtor*alfab
     ELSE
+      IF (branch .EQ. 1) THEN
+        CALL POPREAL8(alfa)
+        CALL POPCONTROL1B(branch)
+        IF (branch .EQ. 0) THEN
+          alfab = 0.0_8
+          CALL XYWAKE_BWD()
+          xteb = 0.0_8
+          yteb = 0.0_8
+        ELSE
+          alfab = 0.0_8
+        END IF
+      END IF
       CALL POPBOOLEAN(lalfa)
       CALL SPECCL_BWD()
       CALL POPREAL8(clspec)
@@ -358,6 +391,7 @@ CONTAINS
     USE M_SPLINE_DIFF, ONLY : scalc, segspl
     USE M_XGDES_DIFF, ONLY : abcopy
     USE M_XOPER_AD_DIFF, ONLY : specal, speccl, viscal
+    USE M_XPANEL_DIFF, ONLY : xywake
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: n_in, imode, niter
     LOGICAL, INTENT(IN) :: warm
@@ -366,6 +400,7 @@ CONTAINS
     REAL, INTENT(OUT) :: cp_out(n_in), cf_out(n_in)
     LOGICAL, INTENT(OUT) :: conv
     INTEGER :: i, is, ibl
+    REAL :: alfrp
 !
 !---- Reynolds number and critical amplification factors (top, bottom):
 !     inputs of the head routine, so that the adjoint gives their gradients
@@ -422,11 +457,21 @@ CONTAINS
     ELSE
 !----- specified CL (alpha is the Newton unknown)
       clspec = op_in
+!------ converged alpha of the BL state (replay of the adjoint / tangent)
+      alfrp = alfa
 !------ inviscid alpha for CL: XFOIL builds the wake at this alpha and
 !       keeps it frozen during the viscous Newton iterations, so the
 !       warm restart must do the same to differentiate the same function
       CALL SPECCL()
       lalfa = .false.
+      IF (warm .AND. xad_replay .AND. lvisc) THEN
+!------ wake at the inviscid alpha (VISCAL keeps it), then Newton
+!       restarted from the converged alpha: the replay starts at the
+!       fixed point (see xad_replay in i_xfoil)
+        IF (.NOT.lwake) CALL XYWAKE()
+        alfa = alfrp
+        adeg = alfa/dtor
+      END IF
     END IF
 !
     IF (lvisc) THEN

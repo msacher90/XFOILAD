@@ -25,6 +25,7 @@ subroutine xad_eval(n_in, x_in, y_in, op_in, re_in, nc_in, imode, niter, warm, &
     use m_spline, only: scalc, segspl
     use m_xgdes, only: abcopy
     use m_xoper_AD, only: specal, speccl, viscal
+    use m_xpanel, only: xywake
     implicit none
     integer, intent(in) :: n_in, imode, niter
     logical, intent(in) :: warm
@@ -33,6 +34,7 @@ subroutine xad_eval(n_in, x_in, y_in, op_in, re_in, nc_in, imode, niter, warm, &
     real, intent(out) :: cp_out(n_in), cf_out(n_in)
     logical, intent(out) :: conv
     integer :: i, is, ibl
+    real :: alfrp
     !
     !---- Reynolds number and critical amplification factors (top, bottom):
     !     inputs of the head routine, so that the adjoint gives their gradients
@@ -91,11 +93,21 @@ subroutine xad_eval(n_in, x_in, y_in, op_in, re_in, nc_in, imode, niter, warm, &
     else
         !----- specified CL (alpha is the Newton unknown)
         CLSpec = op_in
+        !------ converged alpha of the BL state (replay of the adjoint / tangent)
+        alfrp = ALFa
         !------ inviscid alpha for CL: XFOIL builds the wake at this alpha and
         !       keeps it frozen during the viscous Newton iterations, so the
         !       warm restart must do the same to differentiate the same function
         call speccl
         LALfa = .false.
+        if (warm .and. xad_replay .and. LVIsc) then
+            !------ wake at the inviscid alpha (VISCAL keeps it), then Newton
+            !       restarted from the converged alpha: the replay starts at the
+            !       fixed point (see xad_replay in i_xfoil)
+            if (.not.LWAke) call xywake
+            ALFa = alfrp
+            ADEg = ALFa / DTOr
+        endif
     endif
     !
     if (LVIsc) then

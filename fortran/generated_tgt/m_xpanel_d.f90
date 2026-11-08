@@ -5740,10 +5740,10 @@ CONTAINS
   END SUBROUTINE QDCALC
 
 !  Differentiation of xywake in forward (tangent) mode (with options r8 messagesInFile):
-!   variations   of useful results: dqdm s xte x y nx ny dzdm yte
-!                apanel dqdg
-!   with respect to varying inputs: dqdm dste s x y nx ny xp ante
-!                aste chord dzdm yp alfa apanel dqdg gam
+!   variations   of useful results: dqdm s xte x y snew nx ny dzdm
+!                yte apanel dqdg
+!   with respect to varying inputs: dqdm dste s x y snew nx ny
+!                xp ante aste chord dzdm yp alfa apanel dqdg gam
 !*==XYWAKE.f90  processed by SPAG 7.21DC at 11:25 on 11 Jan 2019
   SUBROUTINE XYWAKE_D()
     USE M_XUTILS_DIFF, ONLY : setexp, setexp_d
@@ -5798,7 +5798,6 @@ CONTAINS
     ds1 = 0.5*(s(2)-s(1)+s(n)-s(n-1))
 ! XFOILAD: work vector instead of SNEW(N+1) (sequence association, see QDCALC)
     CALL SETEXP_D(snw, snwd, ds1, ds1d, waklen*chord, waklen*chordd, nw)
-    snewd = 0.0_8
     DO i=1,nw
       snewd(n+i) = snwd(i)
       snew(n+i) = snw(i)

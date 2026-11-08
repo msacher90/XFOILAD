@@ -119,7 +119,7 @@ contains
     subroutine api_adjoint(n, x, y, op, imode, kiter, seed, cp_seed, cf_seed, gx, gy, gop, gflow, res, conv) &
             bind(c, name='xad_adjoint')
         use xad_core_diff, only: xad_eval_b
-        use i_xfoil_diff, only: xad_minit, REInf1, ACRit, xad_keepgeom
+        use i_xfoil_diff, only: xad_minit, REInf1, ACRit, xad_keepgeom, xad_replay
         use xad_zero_adj, only: xad_zero_adjoints
         use xad_hand_store, only: xad_hand_reset
         integer(c_int), intent(in) :: n, imode, kiter
@@ -153,8 +153,10 @@ contains
         geo_ok = .false.
         xad_keepgeom = .false.
         xad_minit = kiter
+        xad_replay = .true.
         call xad_eval_b(n, xw, gx, yw, gy, opw, gop, rew, reb, ncw, ncb, imode, kiter, .true., &
                         cl, clb, cd, cdb, cdf, cdfb, cm, cmb, alfa, alfab, cp, cpb, cf, cfb, lconv)
+        xad_replay = .false.
         xad_minit = 1
         gflow(1) = reb
         gflow(2) = ncb(1)

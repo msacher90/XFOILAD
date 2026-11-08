@@ -88,7 +88,7 @@ contains
     subroutine api_tangent(n, x, y, op, imode, kiter, xd, yd, opd, flowd, outd, cpd, cfd, res, conv) &
             bind(c, name='xad_tangent')
         use xad_core_diff, only: xad_eval_d
-        use i_xfoil_diff, only: xad_minit, REInf1, ACRit
+        use i_xfoil_diff, only: xad_minit, REInf1, ACRit, xad_replay
         use xad_zero_tgt, only: xad_zero_tangents
         integer(c_int), intent(in) :: n, imode, kiter
         real(c_double), intent(in) :: x(n), y(n), op, xd(n), yd(n), opd, flowd(3)
@@ -111,8 +111,10 @@ contains
         ncd(2) = flowd(3)
         call xad_zero_tangents()
         xad_minit = kiter
+        xad_replay = .true.
         call xad_eval_d(n, xw, xdw, yw, ydw, opw, opdw, rew, red, ncw, ncd, imode, kiter, .true., &
                         cl, cld, cd, cdd, cdf, cdfd, cm, cmd, alfa, alfad, cp, cpd, cf, cfd, lconv)
+        xad_replay = .false.
         xad_minit = 1
         outd(1) = cld
         outd(2) = cdd

@@ -863,10 +863,10 @@ CONTAINS
 !   gradient     of useful results: tau cpi cpv cdf cd alfa cl
 !                cm
 !   with respect to varying inputs: dqdm reinf dste qinvu s reinf1
-!                cpi qinv xte x y qinv_a cpv nx yle ny xp ante
-!                minf aste bij minf_cl chord clspec dzdm yp sle
-!                xle acrit alfa cl tklam cm aij yte apanel gamu
-!                dqdg gam
+!                cpi qinv xte x y qinv_a snew cpv nx yle ny xp
+!                ante minf aste bij minf_cl chord clspec dzdm yp
+!                sle xle acrit alfa cl tklam cm aij yte apanel
+!                gamu dqdg gam
   FUNCTION VISCAL_FWD(niter1) RESULT (viscal)
     USE M_XPANEL_DIFF, ONLY : qiset, qiset_fwd, qiset_bwd, qvfue, qvfue_fwd, qvfue_bwd, iblpan, qwcalc, &
 &      qwcalc_fwd, qwcalc_bwd, uicalc, uicalc_fwd, uicalc_bwd, xicalc, xicalc_fwd, xicalc_bwd, gamqv, &
@@ -1374,10 +1374,10 @@ CONTAINS
 !   gradient     of useful results: tau cpi cpv cdf cd alfa cl
 !                cm
 !   with respect to varying inputs: dqdm reinf dste qinvu s reinf1
-!                cpi qinv xte x y qinv_a cpv nx yle ny xp ante
-!                minf aste bij minf_cl chord clspec dzdm yp sle
-!                xle acrit alfa cl tklam cm aij yte apanel gamu
-!                dqdg gam
+!                cpi qinv xte x y qinv_a snew cpv nx yle ny xp
+!                ante minf aste bij minf_cl chord clspec dzdm yp
+!                sle xle acrit alfa cl tklam cm aij yte apanel
+!                gamu dqdg gam
   SUBROUTINE VISCAL_BWD(niter1)
     USE M_XPANEL_DIFF, ONLY : qiset, qiset_fwd, qiset_bwd, qvfue, qvfue_fwd, qvfue_bwd, iblpan, qwcalc, &
 &      qwcalc_fwd, qwcalc_bwd, uicalc, uicalc_fwd, uicalc_bwd, xicalc, xicalc_fwd, xicalc_bwd, gamqv, &
@@ -1751,10 +1751,13 @@ CONTAINS
     CALL QWCALC_BWD()
     CALL POPCONTROL1B(branch)
     IF (branch .EQ. 0) THEN
+      chordb0 = 0.0_8
+      snewb = 0.0_8
       CALL XYWAKE_BWD()
       xteb = 0.0_8
       yteb = 0.0_8
     ELSE
+      snewb = 0.0_8
       chordb0 = 0.0_8
     END IF
 !....................................................................
