@@ -7330,8 +7330,8 @@ CONTAINS
 !
 !---- LU-factor coefficient matrix AIJ
     arg1 = n + 1
-    CALL PUSHINTEGER4ARRAY(aijpiv, 370)
-    CALL PUSHREAL8ARRAY(aij, 370**2)
+    CALL PUSHINTEGER4ARRAY(aijpiv, 510)
+    CALL PUSHREAL8ARRAY(aij, 510**2)
     CALL LUDCMP(iqx, arg1, aij, aijpiv)
 !
 !---- solve system for the two vorticity distributions
@@ -7429,8 +7429,8 @@ CONTAINS
       END DO
     END DO
     arg1 = n + 1
-    CALL POPREAL8ARRAY(aij, 370**2)
-    CALL POPINTEGER4ARRAY(aijpiv, 370)
+    CALL POPREAL8ARRAY(aij, 510**2)
+    CALL POPINTEGER4ARRAY(aijpiv, 510)
     CALL LUDCMP_B(iqx, arg1, aij, aijb, aijpiv)
     CALL POPCONTROL1B(branch)
     IF (branch .EQ. 0) THEN

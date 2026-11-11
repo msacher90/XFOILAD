@@ -566,7 +566,7 @@ CONTAINS
 !
 ! PARAMETER definitions
 !
-    INTEGER, PARAMETER :: nvx=500
+    INTEGER, PARAMETER :: nvx=1000
 !
 ! Dummy arguments
 !

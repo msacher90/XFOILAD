@@ -238,7 +238,7 @@ contains
         !
         ! PARAMETER definitions
         !
-        integer, parameter :: NVX = 500
+        integer, parameter :: NVX = 1000
         !
         ! Dummy arguments
         !

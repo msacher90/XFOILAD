@@ -27,10 +27,10 @@ module i_xfoil
     !
     ! PARAMETER definitions
     !
-    integer, parameter :: IQX = 370, IPX = 5, ISX = 2, IWX = IQX / 8 + 2, IBX = 4 * IQX, IZX = IQX + IWX, &
+    integer, parameter :: IQX = 510, IPX = 5, ISX = 2, IWX = IQX / 8 + 2, IBX = 4 * IQX, IZX = IQX + IWX, &
 		NAX = 800, NPX = 12, NFX = 128, NTX = 2 * IBX
 		! IVX = IQX / 2 + IWX + 50, NAX = 800, NPX = 12, NFX = 128, NTX = 2 * IBX
-	integer, parameter :: IVX = 283
+	integer, parameter :: IVX = 370
     !
     ! Local variables
     !

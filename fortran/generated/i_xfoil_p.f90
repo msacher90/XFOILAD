@@ -475,10 +475,10 @@ MODULE I_XFOIL
 !
 ! PARAMETER definitions
 !
-  INTEGER, PARAMETER :: iqx=370, ipx=5, isx=2, iwx=iqx/8+2, ibx=4*iqx, &
+  INTEGER, PARAMETER :: iqx=510, ipx=5, isx=2, iwx=iqx/8+2, ibx=4*iqx, &
 & izx=iqx+iwx, nax=800, npx=12, nfx=128, ntx=2*ibx
 ! IVX = IQX / 2 + IWX + 50, NAX = 800, NPX = 12, NFX = 128, NTX = 2 * IBX
-  INTEGER, PARAMETER :: ivx=283
+  INTEGER, PARAMETER :: ivx=370
 !
 ! Local variables
 !

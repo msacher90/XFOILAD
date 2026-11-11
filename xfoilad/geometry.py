@@ -108,12 +108,21 @@ def min_thickness(x, y, n=400):
     i = int(np.argmin(t))
     return float(t[i]), float(xs[i])
 
+#: max nodes per side of repanel (2*n_side + 1 nodes) and of the B-spline
+#: sections (2*n_side - 1 nodes): the DLL accepts at most 504 panel nodes
+N_SIDE_MAX = 250
+
+
 def repanel(x, y, n_side=120):
     """Cubic-spline (arc length) repaneling with a cosine node distribution on
     each side, as XFOIL's PANE.  XFOILAD uses the nodes it is given as panel
     nodes; coordinates coming from elsewhere (other codes, .dat files) may be
     too coarse at the TE: on a NACA 0012 with 220 externally generated nodes, CL at
-    4 deg is 6 % low until the section is repaneled."""
+    4 deg is 6 % low until the section is repaneled.
+
+    Returns 2*n_side + 1 nodes; n_side <= N_SIDE_MAX = 250 (DLL limit)."""
+    if n_side > N_SIDE_MAX:
+        raise ValueError(f"n_side must be <= {N_SIDE_MAX} (DLL limit of 504 panel nodes)")
     from scipy.interpolate import CubicSpline
     x, y = normalize(x, y)
     s = np.concatenate([[0.0], np.cumsum(np.hypot(np.diff(x), np.diff(y)))])
@@ -201,8 +210,8 @@ class BSplineAirfoil(Parametrization):
     with ``symmetric=True`` (lower control points yl_i = -yu_i).
     """
 
-    #: max nodes per side: 2*n_side - 1 panel nodes must fit in the DLL (nmax = 364)
-    N_SIDE_MAX = 182
+    #: max nodes per side: 2*n_side - 1 panel nodes must fit in the DLL (nmax = 504)
+    N_SIDE_MAX = N_SIDE_MAX
 
     def __init__(self, n_ctrl=8, degree=3, te=0.0025, n_side=None, x_ctrl=None,
                  dv0=None, le_cluster=0.08, te_cluster=0.35, symmetric=False, le_node=None):
@@ -211,10 +220,10 @@ class BSplineAirfoil(Parametrization):
         self.k = degree
         self.nc = n_ctrl
         self.te = max(float(te), 2e-5)        # exactly sharp TE has a singular derivative
-        if n_side is None:                    # ~3 nodes per control point, within the DLL limit
-            n_side = min(max(80, 3 * n_ctrl), self.N_SIDE_MAX)
+        if n_side is None:                    # ~3 nodes per control point, at most 182 by default
+            n_side = min(max(80, 3 * n_ctrl), 182)
         if n_side > self.N_SIDE_MAX:
-            raise ValueError(f"n_side must be <= {self.N_SIDE_MAX} (DLL limit of 364 panel nodes)")
+            raise ValueError(f"n_side must be <= {self.N_SIDE_MAX} (DLL limit of 504 panel nodes)")
         self.n_side = n_side
         if x_ctrl is None:
             th = np.linspace(0.0, np.pi, n_ctrl - 1)[1:]
